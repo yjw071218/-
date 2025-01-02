@@ -456,7 +456,7 @@ class Market:
         """경제적 요인 업데이트"""
         # GDP 및 기본 경제 지표 업데이트
         if self.policy_sentiment_score >= 15 :
-            self.economic_factors["gdp_growth"] += random.uniform(0.1, 0.45)  # 축소된 변동
+            self.economic_factors["gdp_growth"] += random.uniform(0.5, 1.0)  # 축소된 변동
             self.economic_factors["gdp_growth"] = max(-5.0, min(self.economic_factors["gdp_growth"], 10.0))
 
             self.economic_factors["inflation"] += random.uniform(-0.5, -0.25)  # 축소된 변동
@@ -468,7 +468,7 @@ class Market:
             self.economic_factors["unemployment"] += random.uniform(-0.15, -0.05)  # 축소된 변동
             self.economic_factors["unemployment"] = max(0.0, min(self.economic_factors["unemployment"], 7.0))
 
-            self.economic_factors["exchange_rate"] += random.uniform(-10, -5)  # 축소된 변동
+            self.economic_factors["exchange_rate"] += random.uniform(-3, -1)  # 축소된 변동
             self.economic_factors["exchange_rate"] = max(1000, min(self.economic_factors["exchange_rate"], 1500))
 
             self.economic_factors["raw_material_cost"] += random.uniform(-5, -2.5)  # 축소된 변동
@@ -490,7 +490,7 @@ class Market:
             self.national_factors["population"] = max(10000000, min(self.national_factors["population"], 100000000))
 
         elif self.policy_sentiment_score >= -5:
-            self.economic_factors["gdp_growth"] += random.uniform(-0.5, 0.1)  # 축소된 변동
+            self.economic_factors["gdp_growth"] += random.uniform(-0.25, 0.1)  # 축소된 변동
             self.economic_factors["gdp_growth"] = max(-5.0, min(self.economic_factors["gdp_growth"], 10.0))
 
             self.economic_factors["inflation"] += random.uniform(-0.25, 0.25)  # 축소된 변동
@@ -524,7 +524,7 @@ class Market:
             self.national_factors["population"] = max(10000000, min(self.national_factors["population"], 100000000))
 
         elif self.policy_sentiment_score > -20 :
-            self.economic_factors["gdp_growth"] += random.uniform(-0.1, 0.05)  # 축소된 변동
+            self.economic_factors["gdp_growth"] += random.uniform(-0.75, 0.05)  # 축소된 변동
             self.economic_factors["gdp_growth"] = max(-5.0, min(self.economic_factors["gdp_growth"], 10.0))
 
             self.economic_factors["inflation"] += random.uniform(-0.0125, 0.25)  # 축소된 변동
@@ -1593,7 +1593,7 @@ def main():
         # 초기화
         market = create_initial_market()
         investors.clear()
-        investors.append(Investor("플레이어", 10000000))
+        investors.append(Investor("플레이어", 25000000))
         investors.append(Bot("봇_랜덤1", 5000000, strategy="random"))
         investors.append(Bot("봇_성장1", 7000000, strategy="growth"))
         investors.append(Bot("봇_섹터1", 6000000, strategy="sector"))
@@ -1951,10 +1951,31 @@ def main():
             else:
                 bankrupt_notifications.remove(notif)
 
+    tf_prev_btn_detail = Button(1300, 20, 50, 50, "<<", on_tf_prev, color=GRAY, hover_color=LIGHT_GRAY)
+
+    tf_next_btn_detail = Button(1360, 20, 50, 50, ">>", on_tf_next, color=GRAY, hover_color=LIGHT_GRAY)
+
     def show_company_detail_screen(company):
         """회사 상세 정보 화면 그리기 함수"""
         screen.fill(BG_COLOR)
         draw_text_local(screen, f"[{company.name}] 상세 정보", 50, 50, WHITE, title_font)
+
+        top_info_y = 20
+        draw_text_local(screen, f"Day {int(market.day_count / 48)}", 1450, top_info_y, WHITE, base_font)
+
+        if market.policy_sentiment_score < -5:
+            color = RED
+        elif market.policy_sentiment_score >= 15:
+            color = GREEN
+        else:
+            color = WHITE
+        draw_text_local(screen, f"정세: {market.economic_condition} (점수: {market.policy_sentiment_score:.2f})", 1010,
+                       top_info_y + 37, color, base_font)
+
+        tf_prev_btn_detail.draw(screen)
+        tf_next_btn_detail.draw(screen)
+        current_tf = get_current_timeframe()
+        draw_text_local(screen, f"TF: {current_tf}", 1450, 45, WHITE, base_font)
 
         # 차트 그리기
         group_size = market.timeframes[market.current_timeframe]["group_size"]
@@ -2447,6 +2468,9 @@ def main():
                                     search_query += event.unicode
 
             elif current_scene == SCENE_COMPANY_DETAIL:
+                tf_prev_btn_detail.handle_event(event)
+                tf_next_btn_detail.handle_event(event)
+
                 buy_btn.handle_event(event)
                 sell_btn.handle_event(event)
                 back_btn.handle_event(event)
